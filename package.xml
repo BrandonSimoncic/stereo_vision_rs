@@ -1,0 +1,15 @@
+<package format="3">
+  <name>stereo_vision</name>
+  <version>0.0.0</version>
+  <description>A Simple Package in rust for Stereo Vision</description>
+  <maintainer email="user@todo.todo">user</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclrs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <export>
+    <build_type>ament_cargo</build_type>
+  </export>
+</package>
