@@ -1,0 +1,9 @@
+launch:
+  nodes:
+    - name: stereo_vision_node
+      package: stereo_vision
+      executable: stereo_vision
+      output: screen
+      parameters:
+        - param1: value1
+        - param2: value2
