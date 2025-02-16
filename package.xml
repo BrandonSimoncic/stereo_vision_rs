@@ -4,11 +4,16 @@
   <description>A Simple Package in rust for Stereo Vision</description>
   <maintainer email="user@todo.todo">user</maintainer>
   <license>TODO: License declaration</license>
-
+  
   <depend>rclrs</depend>
   <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
 
+  <build_depend>rosidl_runtime_rs</build_depend>
+  <build_depend>turtle_msgs</build_depend>
+
+  <exec_depend>rosidl_runtime_rs</exec_depend>
+  <exec_depend>turtle_msgs</exec_depend>
+  
   <export>
     <build_type>ament_cargo</build_type>
   </export>

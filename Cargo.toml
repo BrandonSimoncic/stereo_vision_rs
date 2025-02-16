@@ -3,7 +3,17 @@ name = "stereo_vision"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name="stereo_vision"
+path="src/main.rs"
+
 [dependencies]
-opencv = "0.94.2"
+opencv = {version="0.94.2", features= ["clang-runtime"]}
 rclrs = "*"
-std_msgs = "*"
+anyhow = {version = "1", features = ["backtrace"]}
+sensor_msgs = "*"
+builtin_interfaces = "*"
+
+[dependencies.rosidl_runtime_rs]
+version = "0.4"
+
