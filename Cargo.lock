@@ -785,6 +785,10 @@ name = "rosgraph_msgs"
 version = "2.0.2"
 
 [[patch.unused]]
+name = "stereo_vision"
+version = "0.1.0"
+
+[[patch.unused]]
 name = "test_msgs"
 version = "2.0.2"
 

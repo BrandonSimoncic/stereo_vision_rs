@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use opencv::prelude::*;
 use opencv::core::{Point2f, 
     Point3f, 
@@ -30,8 +32,6 @@ struct PointCloud2Msg{
 
 
 
-
-
 fn get_size(image: Mat) -> (i32, i32) 
 {
     let rows = image.rows() as i32;
@@ -41,7 +41,7 @@ fn get_size(image: Mat) -> (i32, i32)
 }
 
 
-fn establish_rois_zone(scope: &Mat) -> (Rect, Rect)
+pub fn establish_rois_zone(scope: &Mat) -> (Rect, Rect)
 {
     let scope = scope.clone();
     let (rows, cols) =  get_size(scope);
@@ -61,7 +61,7 @@ fn call_roi(image: &Mat, left_roi:  &Rect, right_roi:  &Rect) -> Result<(Mat, Ma
 
 
 
-
+#[allow(unused_variables)]
 fn stereo_calibrate() -> Result<(Mat, Mat, Mat, Mat), Error> {
      // Chessboard dimensions (width x height of internal corners)
      let chessboard_size = Size::new(9, 6);
@@ -178,7 +178,7 @@ fn stereo_calibrate() -> Result<(Mat, Mat, Mat, Mat), Error> {
  
      Ok((rotation, translation, essential_matrix, fundamental_matrix))
  }
-
+ #[allow(unused_variables)]
 // Stereo rectification
 fn stereo_rectify(
     rotation: &Mat, 
@@ -311,7 +311,7 @@ fn generate_point_cloud(q: &Mat, disparity: &Mat) -> Result<Mat, Error> {
     
     Ok(points)
 }
-
+#[allow(unused_variables)]
 // Main function
 pub fn calibrate_and_rectify(image: &Mat) -> Result<(), Error> {
     
