@@ -1,4 +1,3 @@
-use std::f32::consts::E;
 
 use opencv::prelude::*;
 use opencv::core::{Point2f, 
@@ -15,22 +14,6 @@ use opencv::calib3d::{self, StereoSGBM_MODE_SGBM};
 use opencv::imgproc;
 use opencv::imgcodecs;
 use opencv::Error;
-
-
-struct PointCloud2Msg{
-    header: String,
-    height: i32,
-    width: i32,
-    fields: Vec<i32>,
-    is_bigendian: bool,
-    point_step: i32,
-    row_step: i32,
-    data: Vec<i8>, // row_step * height
-    is_dense: bool
-
-}
-
-
 
 fn get_size(image: Mat) -> (i32, i32) 
 {
@@ -50,6 +33,7 @@ pub fn establish_rois_zone(scope: &Mat) -> (Rect, Rect)
     (left_roi, right_roi)
 }
 
+#[allow(dead_code)]
 fn call_roi(image: &Mat, left_roi:  &Rect, right_roi:  &Rect) -> Result<(Mat, Mat), Error> {
     let left = Mat::roi(image, *left_roi)?;
     let right = Mat::roi(image, *right_roi)?;
@@ -61,7 +45,7 @@ fn call_roi(image: &Mat, left_roi:  &Rect, right_roi:  &Rect) -> Result<(Mat, Ma
 
 
 
-#[allow(unused_variables)]
+#[allow(dead_code)]
 fn stereo_calibrate() -> Result<(Mat, Mat, Mat, Mat), Error> {
      // Chessboard dimensions (width x height of internal corners)
      let chessboard_size = Size::new(9, 6);
@@ -178,8 +162,8 @@ fn stereo_calibrate() -> Result<(Mat, Mat, Mat, Mat), Error> {
  
      Ok((rotation, translation, essential_matrix, fundamental_matrix))
  }
- #[allow(unused_variables)]
 // Stereo rectification
+#[allow(unused_variables)]
 fn stereo_rectify(
     rotation: &Mat, 
     translation: &Mat, 
@@ -297,6 +281,8 @@ fn stereo_rectify(
     Ok((r1, r2, p1, p2, q))
 }
 
+
+ #[allow(dead_code)]
 // Generate point cloud from disparity map
 fn generate_point_cloud(q: &Mat, disparity: &Mat) -> Result<Mat, Error> {
     let mut points   = Mat::default();
@@ -311,8 +297,9 @@ fn generate_point_cloud(q: &Mat, disparity: &Mat) -> Result<Mat, Error> {
     
     Ok(points)
 }
-#[allow(unused_variables)]
 // Main function
+#[allow(dead_code)]
+#[allow(unused_variables)]
 pub fn calibrate_and_rectify(image: &Mat) -> Result<(), Error> {
     
     // Stereo calibration
