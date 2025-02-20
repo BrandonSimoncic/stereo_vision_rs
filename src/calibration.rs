@@ -46,125 +46,157 @@ fn call_roi(image: &Mat, left_roi:  &Rect, right_roi:  &Rect) -> Result<(Mat, Ma
 
 
 #[allow(dead_code)]
-fn stereo_calibrate() -> Result<(Mat, Mat, Mat, Mat), Error> {
-     // Chessboard dimensions (width x height of internal corners)
-     let chessboard_size = Size::new(9, 6);
+fn stereo_calibrate(left_image: &Mat, right_image: &Mat) -> Result<(Mat, Mat, Mat, Mat), Error> {
+    // Chessboard dimensions (width x height of internal corners)
+    let chessboard_size = Size::new(9, 6);
 
-     // Square size of the chessboard in your desired unit (e.g., meters or millimeters)
-     let square_size = 0.025; // 25 mm or 0.025 meters
+    // Square size of the chessboard in your desired unit (e.g., meters or millimeters)
+    let square_size = 0.015; // 15 mm or 0.015 meters
+
+    // Prepare object points (3D points in real-world space for one chessboard)
+    let mut obj_points = Vec::<Point3f>::new();
+    for i in 0..chessboard_size.height {
+        for j in 0..chessboard_size.width {
+            obj_points.push(Point3f::new(j as f32 * square_size, i as f32 * square_size, 0.0));
+        }
+    }
+
+    let mut object_points = Vector::<Mat>::new();
+    let mut image_points_left = Vector::<Mat>::new();
+    let mut image_points_right = Vector::<Mat>::new();
  
-     // Prepare object points (3D points in real-world space for one chessboard)
-     let mut obj_points = Vec::<Point3f>::new();
-     for i in 0..chessboard_size.height {
-         for j in 0..chessboard_size.width {
-             obj_points.push(Point3f::new(j as f32 * square_size, i as f32 * square_size, 0.0));
-         }
-     }
+     
+    let left_img = left_image;
+    let right_img = right_image;
+
+    let mut corners_left = Vector::<Point2f>::new();
+    let mut corners_right = Vector::<Point2f>::new();
+
+    // Detect chessboard corners
+    let found_left = calib3d::find_chessboard_corners(
+        &left_img,
+        chessboard_size,
+        &mut corners_left,
+        calib3d::CALIB_CB_ADAPTIVE_THRESH | calib3d::CALIB_CB_NORMALIZE_IMAGE,
+    )?;
+    let found_right = calib3d::find_chessboard_corners(
+        &right_img,
+        chessboard_size,
+        &mut corners_right,
+        calib3d::CALIB_CB_ADAPTIVE_THRESH | calib3d::CALIB_CB_NORMALIZE_IMAGE,
+    )?;
+
+    if found_left && found_right {
+        // Refine corner positions
+        imgproc::corner_sub_pix(
+            &left_img,
+            &mut corners_left,
+            Size::new(11, 11),
+            Size::new(-1, -1),
+            TermCriteria::new(
+            TermCriteria_COUNT + TermCriteria_EPS,
+                30,
+                0.001,
+            )?,
+        )?;
+        imgproc::corner_sub_pix(
+            &right_img,
+            &mut corners_right,
+            Size::new(11, 11),
+            Size::new(-1, -1),
+            TermCriteria::new(
+            TermCriteria_COUNT + TermCriteria_EPS,
+                30,
+                0.001,
+            )?,
+        )?;
+
+        image_points_left.push(Mat::from_slice(&corners_left.to_vec())?.clone_pointee());
+        image_points_right.push(Mat::from_slice(&corners_right.to_vec())?.clone_pointee());
+        object_points.push(Mat::from_slice(&obj_points.to_vec())?.clone_pointee());
+    }
+    
+    // Calibration outputs
+    let mut camera_matrix_left =  Mat::default();
+    let mut dist_coeffs_left = Mat::default();
+    let mut camera_matrix_right = Mat::default();
+    let mut dist_coeffs_right = Mat::default();
+
+
+    calib3d::calibrate_camera(
+        &object_points,
+        &image_points_left,
+        left_img.size()?,
+        &mut camera_matrix_left,
+        &mut dist_coeffs_left,
+        &mut Mat::default(),
+        &mut Mat::default(),
+        0,
+        TermCriteria::new(
+            TermCriteria_COUNT + TermCriteria_EPS,
+            100,
+            1e-5,
+        )?,
+    )?;
+    calib3d::calibrate_camera(
+        &object_points,
+        &image_points_right,
+        right_img.size()?,
+        &mut camera_matrix_right,
+        &mut dist_coeffs_right,
+        &mut Mat::default(),
+        &mut Mat::default(),
+        0,
+        TermCriteria::new(
+            TermCriteria_COUNT + TermCriteria_EPS,
+            100,
+            1e-5,
+        )?,
+    )?;
  
-     let mut object_points = Vector::<Mat>::new();
-     let mut image_points_left = Vector::<Mat>::new();
-     let mut image_points_right = Vector::<Mat>::new();
- 
-     // Load chessboard images for the left and right cameras
-     let left_images = vec!["left01.jpg", "left02.jpg", "left03.jpg"];
-     let right_images = vec!["right01.jpg", "right02.jpg", "right03.jpg"];
- 
-     for (left_img_path, right_img_path) in left_images.iter().zip(right_images.iter()) {
-         let left_img = imgcodecs::imread(left_img_path, imgcodecs::IMREAD_GRAYSCALE)?;
-         let right_img = imgcodecs::imread(right_img_path, imgcodecs::IMREAD_GRAYSCALE)?;
- 
-         let mut corners_left = Vector::<Point2f>::new();
-         let mut corners_right = Vector::<Point2f>::new();
- 
-         // Detect chessboard corners
-         let found_left = calib3d::find_chessboard_corners(
-             &left_img,
-             chessboard_size,
-             &mut corners_left,
-             calib3d::CALIB_CB_ADAPTIVE_THRESH | calib3d::CALIB_CB_NORMALIZE_IMAGE,
-         )?;
-         let found_right = calib3d::find_chessboard_corners(
-             &right_img,
-             chessboard_size,
-             &mut corners_right,
-             calib3d::CALIB_CB_ADAPTIVE_THRESH | calib3d::CALIB_CB_NORMALIZE_IMAGE,
-         )?;
- 
-         if found_left && found_right {
-             // Refine corner positions
-             imgproc::corner_sub_pix(
-                 &left_img,
-                 &mut corners_left,
-                 Size::new(11, 11),
-                 Size::new(-1, -1),
-                 TermCriteria::new(
-                    TermCriteria_COUNT + TermCriteria_EPS,
-                     30,
-                     0.001,
-                 )?,
-             )?;
-             imgproc::corner_sub_pix(
-                 &right_img,
-                 &mut corners_right,
-                 Size::new(11, 11),
-                 Size::new(-1, -1),
-                 TermCriteria::new(
-                    TermCriteria_COUNT + TermCriteria_EPS,
-                     30,
-                     0.001,
-                 )?,
-             )?;
- 
-             image_points_left.push(Mat::from_slice(&corners_left.to_vec())?.clone_pointee());
-             image_points_right.push(Mat::from_slice(&corners_right.to_vec())?.clone_pointee());
-             object_points.push(Mat::from_slice(&obj_points.to_vec())?.clone_pointee());
-         }
-     }
- 
-     // Calibration outputs
-     let mut camera_matrix_left =  Mat::default();
-     let mut dist_coeffs_left = Mat::default();
-     let mut camera_matrix_right = Mat::default();
-     let mut dist_coeffs_right = Mat::default();
- 
-     let mut rotation = Mat::default();
-     let mut translation = Mat::default();
-     let mut essential_matrix = Mat::default();
-     let mut fundamental_matrix = Mat::default();
- 
-     // Stereo calibration
-     opencv::calib3d::stereo_calibrate(
-         &mut object_points,
-         &mut image_points_left,
-         &mut image_points_right,
-         &mut camera_matrix_left,
-         &mut dist_coeffs_left,
-         &mut camera_matrix_right,
-         &mut dist_coeffs_right,
-         chessboard_size,
-         &mut rotation,
-         &mut translation,
-         &mut essential_matrix,
-         &mut fundamental_matrix,
-         calib3d::CALIB_FIX_INTRINSIC,
-         TermCriteria::new(
-             TermCriteria_COUNT + TermCriteria_EPS,
-             100,
-             1e-5,
-         )?,
-     )?;
- 
-     // Output the calibration results
-     println!("Left Camera Matrix: {:?}", camera_matrix_left);
-     println!("Right Camera Matrix: {:?}", camera_matrix_right);
-     println!("Rotation: {:?}", rotation);
-     println!("Translation: {:?}", translation);
- 
-     Ok((rotation, translation, essential_matrix, fundamental_matrix))
+
+    let mut rotation = Mat::default();
+    let mut translation = Mat::default();
+    let mut essential_matrix = Mat::default();
+    let mut fundamental_matrix = Mat::default();
+
+    // Stereo calibration
+    opencv::calib3d::stereo_calibrate(
+        &mut object_points,
+        &mut image_points_left,
+        &mut image_points_right,
+        &mut camera_matrix_left,
+        &mut dist_coeffs_left,
+        &mut camera_matrix_right,
+        &mut dist_coeffs_right,
+        chessboard_size,
+        &mut rotation,
+        &mut translation,
+        &mut essential_matrix,
+        &mut fundamental_matrix,
+        calib3d::CALIB_FIX_INTRINSIC,
+        TermCriteria::new(
+            TermCriteria_COUNT + TermCriteria_EPS,
+            100,
+            1e-5,
+        )?,
+    )?;
+
+    // Output the calibration results
+    println!("Left Camera Matrix: {:?}", camera_matrix_left);
+    println!("Right Camera Matrix: {:?}", camera_matrix_right);
+    println!("Rotation: {:?}", rotation);
+    println!("Translation: {:?}", translation);
+
+    Ok((rotation, translation, essential_matrix, fundamental_matrix))
  }
 // Stereo rectification
 #[allow(unused_variables)]
 fn stereo_rectify(
+    camera_matrix_left: &Mat,
+    dist_coeffs_left: &Mat,
+    camera_matrix_right: &Mat,
+    dist_coeffs_right: &Mat,
     rotation: &Mat, 
     translation: &Mat, 
     camera_size: Size,
@@ -180,32 +212,7 @@ fn stereo_rectify(
     let mut q = Mat::default();
     let alpha: f64 = 0.0;
     let flag = 0;
-    
-    let camera_matrix_left = Mat::from_slice_2d(&[
-        [700.0, 0.0, 640.0],
-        [0.0, 700.0, 360.0],
-        [0.0, 0.0, 1.0],
-    ])?;
-    let dist_coeffs_left = Mat::from_slice(&[0.1, -0.25, 0.0, 0.0])?;
-    let camera_matrix_right = Mat::from_slice_2d(&[
-        [700.0, 0.0, 640.0],
-        [0.0, 700.0, 360.0],
-        [0.0, 0.0, 1.0],
-    ])?;
-    let dist_coeffs_right = Mat::from_slice(&[0.1, -0.25, 0.0, 0.0])?;
-
-    // // Rotation and translation between cameras
-    // let rotation = Mat::from_slice_2d(&[
-    //     [1.0, 0.0, 0.0],
-    //     [0.0, 1.0, 0.0],
-    //     [0.0, 0.0, 1.0],
-    // ])?;
-    // let translation = Mat::from_slice(&[0.1, 0.0, 0.0])?;
-
-    
-    
-    
-        opencv::calib3d::stereo_rectify(
+    opencv::calib3d::stereo_rectify(
         &camera_matrix_left,
         &dist_coeffs_left,
         &camera_matrix_right,
@@ -281,7 +288,30 @@ fn stereo_rectify(
     Ok((r1, r2, p1, p2, q))
 }
 
+pub fn mat_to_array(mat: &Mat) -> Result<[f64; 9], opencv::Error> {
+    // Ensure the Mat has the correct number of elements
+    assert_eq!(mat.total(), 9);
 
+    // Get the data as a slice
+    let data: &[f64] = mat.data_typed()?;
+
+    // Convert the slice to an array
+    let array: [f64; 9] = data.try_into().expect("Slice with incorrect length");
+
+    Ok(array)
+}
+pub fn mat_to_array12(mat: &Mat) -> Result<[f64; 12], opencv::Error> {
+    // Ensure the Mat has the correct number of elements
+    assert_eq!(mat.total(), 9);
+
+    // Get the data as a slice
+    let data: &[f64] = mat.data_typed()?;
+
+    // Convert the slice to an array
+    let array: [f64; 12] = data.try_into().expect("Slice with incorrect length");
+
+    Ok(array)
+}
  #[allow(dead_code)]
 // Generate point cloud from disparity map
 fn generate_point_cloud(q: &Mat, disparity: &Mat) -> Result<Mat, Error> {
@@ -297,63 +327,16 @@ fn generate_point_cloud(q: &Mat, disparity: &Mat) -> Result<Mat, Error> {
     
     Ok(points)
 }
-// Main function
-#[allow(dead_code)]
-#[allow(unused_variables)]
-pub fn calibrate_and_rectify(image: &Mat) -> Result<(), Error> {
-    
-    // Stereo calibration
-    let (rotation, translation, essential_matrix, fundamental_matrix)  = stereo_calibrate()?;
-
-    
-
-    let (mut left_roi, mut right_roi) = establish_rois_zone(&image);
-    let (camera_matrix_left, camera_matrix_right) = call_roi(
-        &image, 
-        &left_roi, 
-        &right_roi)?;
-    let new_img_size = camera_matrix_left.size()?;
-    // Stereo rectification
-    let (r1, r2, p1, p2, q)   = stereo_rectify( 
-        &rotation, 
-        &translation, 
-        new_img_size,
-        camera_matrix_right,
-        camera_matrix_left,
-        &mut left_roi, 
-        &mut right_roi)?;
-    
-    let mut stereo_alg = opencv::calib3d::StereoSGBM::create(
-        0,
-        16, 
-        3, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        0, 
-        StereoSGBM_MODE_SGBM)?;
-        let mut disparity = Mat::default();
-
-
-    stereo_alg.compute(&image, &p2, &mut disparity)?;
-    let point_cloud = generate_point_cloud(&q, &disparity)?;
-    // Normalize disparity for visualization
-    let mut disparity_normalized = Mat::default();
-    opencv::core::normalize(
-        &disparity,
-        &mut disparity_normalized,
-        0.0,
-        255.0,
-        NORM_MINMAX,
-        CV_16F,
-        &Mat::default(),
-    )?;
-
-    // Now you can use the rectified parameters to process live video
-    
-
-    Ok(())
+pub fn load_matrix(name: &str) -> Result<Mat, Error> {
+    // let mut file = std::fs::File::open(name)?;
+    // let mut buffer = Vec::new();
+    // file.read_to_end(&mut buffer)?;
+    // let mat = Mat::from_slice(&buffer)?;
+    Ok(Mat::default())
 }
+// pub fn save_matrix(name: &str, mat: &Mat) -> Result<(), Error> {
+//     let mut file = std::fs::File::create(name)?;
+//     let buffer = mat.to_vec()?;
+//     file.write_all(&buffer)?;
+//     Ok(())
+// }
