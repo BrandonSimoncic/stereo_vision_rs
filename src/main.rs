@@ -14,6 +14,7 @@ use std::{env, sync::Arc, thread, time::Duration};
 use sensor_msgs::msg::Image as ImageMsg;
 use sensor_msgs::msg::CameraInfo as CameraInfoMsg;
 use sensor_msgs::msg::RegionOfInterest as RegionOfInterestMsg;
+use sensor_msgs::srv::SetCameraInfo;
 use rclrs::log;
 use builtin_interfaces::msg::Time;
 
@@ -62,15 +63,14 @@ impl CameraDriverNode {
             rotation_matrix: calibration::load_matrix("right_rotation_matrix").unwrap(),
             projection_matrix: calibration::load_matrix("right_projection_matrix").unwrap(),
         };
-        let camera_info_service = node.create_service::<SetCameraInfo, _>(
-            "set_camera_info",
-            |request, response| {
-                // Handle the request and set the camera info
-                response.success = true;
-                response.status_message = "Camera info set successfully".to_string();
-                Ok(())
-            }
-        )?;
+        // let camera_info_service = node.create_service::<SetCameraInfo, _>(
+        //     "set_camera_info",
+        //     |request, response| {
+        //         // Handle the request and set the camera info
+        //         response.camera_info = self.construct_infomsg(&Mat::default()).unwrap();
+        //         response
+        //     }
+        // )?;
         Ok(Self { node, left_publisher, right_publisher, left_info_publisher, right_info_publisher, left_camera, right_camera })
     }
     fn publish_info(&self, left_image: &Mat, right_image: &Mat) -> Result<(), RclrsError> {
@@ -167,8 +167,9 @@ fn main() -> Result<(), RclrsError> {
 
         let left_frame = Mat::roi(&mut frame, left_roi).unwrap().clone_pointee();
         let right_frame = Mat::roi(&mut frame, right_roi).unwrap().clone_pointee();
-
-        publisher_other_thread.publish_info(&left_frame, &right_frame).unwrap();
+        
+        // TODO: Fix this info stream to calibrate cameras
+        // publisher_other_thread.publish_info(&left_frame, &right_frame).unwrap();
 		publisher_other_thread.publish_data(&left_frame, &right_frame).unwrap();
         
     });
@@ -182,7 +183,6 @@ fn main() -> Result<(), RclrsError> {
 
 //camera calibration does not work in ros2, I did not need to rewrite that wheel.
 //Tasks ahead of me:
-//2. add some yolo object detection
 //3. add some point cloud stuff
 //4. profit
 //actual 4, document code and make it a package

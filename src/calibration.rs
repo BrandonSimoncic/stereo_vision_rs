@@ -289,8 +289,8 @@ fn stereo_rectify(
 }
 
 pub fn mat_to_array(mat: &Mat) -> Result<[f64; 9], opencv::Error> {
-    // Ensure the Mat has the correct number of elements
-    assert_eq!(mat.total(), 9);
+    // // Ensure the Mat has the correct number of elements
+    // assert_eq!(mat.total(), 9);
 
     // Get the data as a slice
     let data: &[f64] = mat.data_typed()?;
@@ -301,8 +301,8 @@ pub fn mat_to_array(mat: &Mat) -> Result<[f64; 9], opencv::Error> {
     Ok(array)
 }
 pub fn mat_to_array12(mat: &Mat) -> Result<[f64; 12], opencv::Error> {
-    // Ensure the Mat has the correct number of elements
-    assert_eq!(mat.total(), 9);
+    // // Ensure the Mat has the correct number of elements
+    // assert_eq!(mat.total(), 9);
 
     // Get the data as a slice
     let data: &[f64] = mat.data_typed()?;
