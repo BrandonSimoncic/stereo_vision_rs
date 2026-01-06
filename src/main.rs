@@ -3,14 +3,8 @@ use opencv::prelude::*;
 use opencv::{videoio, Result};
 mod calibration;
 
-use rclrs::{create_node, 
-    Context, 
-    Node, 
-    Publisher, 
-    RclrsError, 
-    QOS_PROFILE_DEFAULT,
-    ToLogParams};
-use std::{env, sync::Arc, thread, time::Duration};
+use rclrs::*;
+use std::{sync::Arc, thread, time::Duration};
 use sensor_msgs::msg::Image as ImageMsg;
 use sensor_msgs::msg::CameraInfo as CameraInfoMsg;
 use sensor_msgs::msg::RegionOfInterest as RegionOfInterestMsg;
@@ -36,20 +30,16 @@ struct CameraDriverNode {
     right_info_publisher: Arc<Publisher<CameraInfoMsg>>,
 }
 impl CameraDriverNode {
-    fn new(context: &Context) -> Result<Self, RclrsError> {
-        let node = create_node(context, "camera_node").unwrap();
+    fn new(executor: &Executor) -> Result<Self, RclrsError> {
+        let node = executor.create_node("camera_node")?;
         let left_publisher = node
-            .create_publisher("left_image", QOS_PROFILE_DEFAULT)
-            .unwrap();
+            .create_publisher("left_image")?;
         let right_publisher = node
-            .create_publisher("right_image", QOS_PROFILE_DEFAULT)
-            .unwrap();
+            .create_publisher("right_image")?;
         let left_info_publisher = node
-            .create_publisher("left_camera_info", QOS_PROFILE_DEFAULT)
-            .unwrap();
+            .create_publisher("left_camera_info")?;
         let right_info_publisher = node
-            .create_publisher("right_camera_info", QOS_PROFILE_DEFAULT)
-            .unwrap();
+            .create_publisher("right_camera_info")?;
 
         let left_camera = CameraParams {
             camera_matrix: calibration::load_matrix("left_camera_matrix").unwrap(),
@@ -71,7 +61,7 @@ impl CameraDriverNode {
         //         response
         //     }
         // )?;
-        Ok(Self { node, left_publisher, right_publisher, left_info_publisher, right_info_publisher, left_camera, right_camera })
+        Ok(Self { node: node.into(), left_publisher: left_publisher.into(), right_publisher: right_publisher.into(), left_info_publisher: left_info_publisher.into(), right_info_publisher: right_info_publisher.into(), left_camera, right_camera })
     }
     fn publish_info(&self, left_image: &Mat, right_image: &Mat) -> Result<(), RclrsError> {
         let left_msg = self.construct_infomsg(left_image).unwrap();
@@ -144,8 +134,8 @@ fn open_camera() -> videoio::VideoCapture {
 
 
 fn main() -> Result<(), RclrsError> {
-    let context = Context::new(env::args()).unwrap();
-    let camera_node = Arc::new(CameraDriverNode::new(&context).unwrap());
+    let mut executor = Context::default_from_env()?.create_basic_executor();
+    let camera_node = Arc::new(CameraDriverNode::new(&executor)?);
     let publisher_other_thread = Arc::clone(&camera_node);
     // let log_text = Arc::clone(&camera_node);
 	let mut cam = open_camera();
@@ -173,18 +163,5 @@ fn main() -> Result<(), RclrsError> {
 		publisher_other_thread.publish_data(&left_frame, &right_frame).unwrap();
         
     });
-    rclrs::spin(camera_node.node.clone())
+    executor.spin(SpinOptions::default()).first_error()
 }
-
-
-
-
-
-
-//camera calibration does not work in ros2, I did not need to rewrite that wheel.
-//Tasks ahead of me:
-//3. add some point cloud stuff
-//4. profit
-//actual 4, document code and make it a package
-//5. see  if this runs on the nano
-//6. convert publish data to a construct msg function

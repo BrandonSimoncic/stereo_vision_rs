@@ -8,7 +8,7 @@ name="stereo_vision"
 path="src/main.rs"
 
 [dependencies]
-opencv = {version="0.94.2", features= ["clang-runtime"]}
+opencv = {version="*", features= ["clang-runtime"]}
 rclrs = "*"
 anyhow = {version = "1", features = ["backtrace"]}
 sensor_msgs = "*"

@@ -9,10 +9,7 @@
   <depend>std_msgs</depend>
 
   <build_depend>rosidl_runtime_rs</build_depend>
-  <build_depend>turtle_msgs</build_depend>
-
   <exec_depend>rosidl_runtime_rs</exec_depend>
-  <exec_depend>turtle_msgs</exec_depend>
   
   <export>
     <build_type>ament_cargo</build_type>
