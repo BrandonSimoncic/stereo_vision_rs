@@ -27,6 +27,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ament_rs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b901da946b7b1620d44563e10c7634681af855a7f5fb59bd09b6eb801dcf6e49"
+dependencies = [
+ "itertools",
+ "walkdir",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -290,6 +300,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
+name = "either"
+version = "1.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+
+[[package]]
 name = "errno"
 version = "0.3.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -490,6 +506,15 @@ name = "hermit-abi"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
+
+[[package]]
+name = "itertools"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f56a2d0bc861f9165be4eb3442afd3c236d8a98afd426f65d92324ae1091a484"
+dependencies = [
+ "either",
+]
 
 [[package]]
 name = "jobserver"
@@ -706,11 +731,13 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 name = "rclrs"
 version = "0.6.0"
 dependencies = [
+ "ament_rs",
  "async-std",
  "async-stream",
  "cfg-if",
  "futures",
  "futures-lite",
+ "libloading",
  "rosidl_runtime_rs 0.5.0",
  "rustflags",
  "tokio",
@@ -793,6 +820,15 @@ name = "rustversion"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
+
+[[package]]
+name = "same-file"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
+dependencies = [
+ "winapi-util",
+]
 
 [[package]]
 name = "semver"
@@ -912,6 +948,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
+name = "walkdir"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b"
+dependencies = [
+ "same-file",
+ "winapi-util",
+]
+
+[[package]]
 name = "wasip2"
 version = "1.0.1+wasi-0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -986,6 +1032,15 @@ checksum = "9b32828d774c412041098d182a8b38b16ea816958e07cf40eec2bc080ae137ac"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "winapi-util"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
+dependencies = [
+ "windows-sys",
 ]
 
 [[package]]
@@ -1118,12 +1173,76 @@ name = "action_msgs"
 version = "2.0.3"
 
 [[patch.unused]]
+name = "actionlib_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "composition_interfaces"
+version = "2.0.3"
+
+[[patch.unused]]
+name = "diagnostic_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
 name = "example_interfaces"
 version = "0.12.0"
 
 [[patch.unused]]
+name = "examples_logging_demo"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "examples_parameter_demo"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "examples_rclrs_message_demo"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "examples_rclrs_minimal_client_service"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "examples_rclrs_minimal_pub_sub"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "examples_worker_demo"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "intel_msgs"
+version = "0.0.0"
+
+[[patch.unused]]
+name = "kinematics"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "lifecycle_msgs"
+version = "2.0.3"
+
+[[patch.unused]]
+name = "memory_rs"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "mpu_6500_rs"
+version = "0.1.0"
+
+[[patch.unused]]
 name = "nav_msgs"
 version = "5.3.6"
+
+[[patch.unused]]
+name = "observational_context_rs"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "path_planning"
+version = "0.1.0"
 
 [[patch.unused]]
 name = "rcl_interfaces"
@@ -1138,9 +1257,49 @@ name = "rosgraph_msgs"
 version = "2.0.3"
 
 [[patch.unused]]
+name = "rust_pubsub"
+version = "0.5.0"
+
+[[patch.unused]]
+name = "shape_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "statistics_msgs"
+version = "2.0.3"
+
+[[patch.unused]]
+name = "std_srvs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "stereo_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "stereo_vision"
+version = "0.1.0"
+
+[[patch.unused]]
 name = "test_msgs"
+version = "2.0.3"
+
+[[patch.unused]]
+name = "trajectory_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "type_description_interfaces"
 version = "2.0.3"
 
 [[patch.unused]]
 name = "unique_identifier_msgs"
 version = "2.5.0"
+
+[[patch.unused]]
+name = "visualization_msgs"
+version = "5.3.6"
+
+[[patch.unused]]
+name = "yolov8_ros"
+version = "0.1.0"
