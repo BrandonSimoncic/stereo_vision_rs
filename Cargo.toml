@@ -1,7 +1,7 @@
 [package]
 name = "stereo_vision"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name="stereo_vision"
@@ -9,13 +9,10 @@ path="src/main.rs"
 
 [dependencies]
 opencv = {version="*", features= ["clang-runtime"]}
-rclrs = "*"
+rclrs = "0.6"
 anyhow = {version = "1", features = ["backtrace"]}
 sensor_msgs = "*"
 builtin_interfaces = "*"
-
-[dependencies.rosidl_runtime_rs]
-version = "0.4"
 
 [package.metadata.ros]
 install_to_share = ["launch"]
